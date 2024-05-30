@@ -10,7 +10,7 @@ from datetime import datetime
 st.title('STOCK PRICE PREDICTION')
 # Function to download and prepare data for a list of tickers
 
-ticker = st.selectbox('Select a stock ticker:', ['RS', 'AMZN', 'TSLA', 'HDB', 'AMD', 'NVDA'])
+ticker = st.text_input('Select a stock ticker to pridict it price:')
 
 
 data = yf.download(ticker, start='2010-01-01', end=datetime.now())
