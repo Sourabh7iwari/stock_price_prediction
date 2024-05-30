@@ -105,7 +105,7 @@ def predict_and_plot(ticker, train_start_date, predict_end_date, prediction_days
 
 # Define new dates for prediction
 predict_start_date = '2023-01-01'
-predict_end_date = '2024-05-29'
+predict_end_date = datetime.now()
 
 # Example prediction and plotting
 predicted_prices = predict_and_plot('AAPL', start_date, predict_end_date, prediction_days, model, scaler)
