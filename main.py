@@ -21,46 +21,52 @@ def fetch_news_sentiment(ticker):
     url = finviz_url + ticker
 
     req = Request(url=url, headers={'user-agent': 'my-app'})
-    response = urlopen(req)
-    html = BeautifulSoup(response, 'html.parser')
-    news_table = html.find(id='news-table')
+    try:
+        response = urlopen(req)
+        html = BeautifulSoup(response, 'html.parser')
+        news_table = html.find(id='news-table')
 
-    parsed_data = []
-    last_date = None  # Initialize last_date to track the last valid date
+        parsed_data = []
+        last_date = None  # Initialize last_date to track the last valid date
 
-    # Parse the news table for headlines and dates
-    for row in news_table.findAll('tr'):
-        if row.a:
-            title = row.a.get_text()
-            date_data = row.td.text.strip().split(' ')
+        # Parse the news table for headlines and dates
+        for row in news_table.findAll('tr'):
+            if row.a:
+                title = row.a.get_text()
+                date_data = row.td.text.strip().split(' ')
 
-            date, time = '', ''
-            if len(date_data) == 1:
-                time = date_data[0]
-                news_date = last_date  # Use the last valid date
-            else:
-                date = date_data[0]
-                time = date_data[1]
-                # Handle 'Today' and 'Yesterday'
-                if date == 'Today':
-                    news_date = datetime.now().date()
-                elif date == 'Yesterday':
-                    news_date = datetime.now().date() - timedelta(days=1)
+                date, time = '', ''
+                if len(date_data) == 1:
+                    time = date_data[0]
+                    news_date = last_date  # Use the last valid date
                 else:
-                    news_date = datetime.strptime(date, '%b-%d-%y').date()
-                last_date = news_date  # Update the last valid date
+                    date = date_data[0]
+                    time = date_data[1]
+                    # Handle 'Today' and 'Yesterday'
+                    if date == 'Today':
+                        news_date = datetime.now().date()
+                    elif date == 'Yesterday':
+                        news_date = datetime.now().date() - timedelta(days=1)
+                    else:
+                        news_date = datetime.strptime(date, '%b-%d-%y').date()
+                    last_date = news_date  # Update the last valid date
 
-            # Only include news from the last 3 days
-            if news_date and news_date >= datetime.now().date() - timedelta(days=3):
-                parsed_data.append([ticker, news_date, time, title])
+                # Only include news from the last 3 days
+                if news_date and news_date >= datetime.now().date() - timedelta(days=3):
+                    parsed_data.append([ticker, news_date, time, title])
 
-    df = pd.DataFrame(parsed_data, columns=['ticker', 'date', 'time', 'title'])
+        df = pd.DataFrame(parsed_data, columns=['ticker', 'date', 'time', 'title'])
 
-    vader = SentimentIntensityAnalyzer()
-    f = lambda title: vader.polarity_scores(title)['compound']
-    df['compound'] = df['title'].apply(f)
+        vader = SentimentIntensityAnalyzer()
+        f = lambda title: vader.polarity_scores(title)['compound']
+        df['compound'] = df['title'].apply(f)
 
-    return df
+        return df
+    except:
+        st.write("")
+        st.subheader("No news headlines found for this Ticker")
+        return pd.DataFrame(columns=['ticker', 'date', 'time', 'title', 'compound'])
+
 
 # Function to adjust the predicted price based on sentiment score
 def adjust_price_with_sentiment(predicted_price, sentiment_df):
